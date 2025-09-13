@@ -50,7 +50,7 @@ export default function FlashcardPage() {
       {
         id: "f4",
         type: "text",
-        title: "Lorem",
+        title: "Releasing Pressure",
         content:
           "When pressure builds, your attention starts to shift. You might focus more on outcome, how others are doing, or what could go wrong. That shift can drain your drive. It makes it harder to stay connected to why you’re here and what matters most. Athletes who compete well under pressure usually have a way to bring their focus back to simple, personal anchors to stay connected with what they trust.",
 
