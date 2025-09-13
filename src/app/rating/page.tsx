@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence, cubicBezier } from "framer-motion";
 import { twMerge } from "tailwind-merge";
@@ -12,7 +12,7 @@ import ChatIcon from "@/components/icons/ChatIcon";
 
 const EASE = cubicBezier(0.22, 1, 0.36, 1);
 
-export default function RatingPage() {
+function RatingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -245,5 +245,31 @@ export default function RatingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingRating() {
+  return (
+    <div className="w-full h-full flex justify-center">
+      <div className="min-h-screen max-w-md w-full relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url('/quiz-bg.png')` }}
+        />
+        <div className="relative z-10 h-dvh flex items-center justify-center">
+          <div className="text-white">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function RatingPage() {
+  return (
+    <Suspense fallback={<LoadingRating />}>
+      <RatingContent />
+    </Suspense>
   );
 }

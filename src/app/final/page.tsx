@@ -25,12 +25,12 @@ type StepAvail = Exclude<StepState, "locked">;
 function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const showDiscoverOnly = searchParams.get("view") === "discover";
+  const showDiscoverOnly = searchParams?.get("view") === "discover";
 
   // Get score data from URL params or use defaults
-  const hiteScore = parseInt(searchParams.get("hiteScore") || "1074");
-  const pointsEarned = parseInt(searchParams.get("pointsEarned") || "0");
-  const wasCorrect = searchParams.get("wasCorrect") === "true";
+  const hiteScore = parseInt(searchParams?.get("hiteScore") || "1074");
+  const pointsEarned = parseInt(searchParams?.get("pointsEarned") || "0");
+  const wasCorrect = searchParams?.get("wasCorrect") === "true";
   const [level] = useState<"Starter">("Starter");
   const [activeStreak] = useState(6);
 

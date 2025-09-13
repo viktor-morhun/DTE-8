@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   motion,
@@ -18,7 +18,7 @@ import HITEIcon from "@/components/icons/HITEIcon";
 
 const EASE = cubicBezier(0.22, 1, 0.36, 1);
 
-export default function ScorePage() {
+function ScoreContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -485,5 +485,31 @@ export default function ScorePage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function LoadingScore() {
+  return (
+    <div className="w-full h-full flex justify-center">
+      <div className="min-h-screen max-w-md w-full relative overflow-hidden">
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{ backgroundImage: `url('/quiz-bg.png')` }}
+        />
+        <div className="relative z-10 h-dvh flex items-center justify-center">
+          <div className="text-white">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default function ScorePage() {
+  return (
+    <Suspense fallback={<LoadingScore />}>
+      <ScoreContent />
+    </Suspense>
   );
 }
