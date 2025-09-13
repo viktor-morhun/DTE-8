@@ -9,8 +9,8 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "DTE-6",
-  description: "DTE-6 Your Competitor Identity",
+  title: "DTE-8",
+  description: "DTE-8 Pressure and Drive",
   icons: {
     icon: [
       { url: "/web-app-manifest-192x192.png", sizes: "192x192" },

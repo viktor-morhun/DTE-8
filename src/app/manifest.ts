@@ -4,9 +4,9 @@ export const dynamic = 'force-dynamic';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'DTE-6',
-    short_name: 'DTE-6',
-    description: 'Your Competitor Identity',
+    name: 'DTE-8',
+    short_name: 'DTE-8',
+    description: 'Pressure and Drive',
     id: '/',
     start_url: '/',
     scope: '/',
