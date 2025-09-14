@@ -42,8 +42,8 @@ export default function NotificationPage() {
                             <Image src="/logo.png" alt="logo" width={38} height={38} />
                         </div>
                         <div className="flex flex-col justify-center flex-1">
-                            <span className="text-white text-[15px] font-semibold tracking-[-1%] leading-[18px] mb-1">You are invited to join a team!</span>
-                            <span className="text-white text-[14px] font-light tracking-[-1%] leading-[19px]">Congrats! You’ve been selected to join a team. Tap to accept your spot! 💪🔥</span>
+                            <span className="text-white text-[15px] font-semibold tracking-[-1%] leading-[18px] mb-1">🔥 Your DTE plan is waiting!</span>
+                            <span className="text-white text-[14px] font-light tracking-[-1%] leading-[19px]">Time to lock in! Complete today’s Discover, Train, Execute plan.</span>
                         </div>
                     </div>
                 </div>
