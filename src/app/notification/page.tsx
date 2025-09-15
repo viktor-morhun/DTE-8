@@ -35,7 +35,7 @@ export default function NotificationPage() {
                 </div>
                 <div className="flex flex-col w-full py-6 relative bottom-20">
                     <div className="flex items-center w-full justify-between pr-[25px] mb-3 ">
-                        <span className="text-white text-[26px] tracking-[-1%] leading-[31px] ml-6">Notification Centre</span>
+                        <span className="text-white text-[26px] tracking-[-1%] leading-[31px] ml-6">Notification Center</span>
                         <Image src="/close.svg" alt="Settings" width={34} height={34} />
                     </div><div className="flex flex-row items-center gap-4 z-20 bg-[#20201FCC] w-full max-w-[380px] rounded-[20px] min-h-[95px] px-4 py-3 mx-auto" onClick={() => router.push('/questions')}>
                         <div className="flex items-center justify-center w-[40px] h-[40px]">

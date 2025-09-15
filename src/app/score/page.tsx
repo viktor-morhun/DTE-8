@@ -26,12 +26,30 @@ function ScoreContent() {
   const firstAnswerResult = searchParams.get("firstAnswer"); // 'correct' or 'incorrect'
   const allCorrect = firstAnswerResult === "correct";
 
+  // HITE SCORE
+  const HITE_BASE = 915;
+
+  // Calculate final target values immediately
+  const targetValues = useMemo(() => {
+    const completedDTE = 100;
+    const streakMultiplier = 7;
+    const correctBonus = allCorrect ? 15 : 0;
+    const totalPoints = completedDTE + streakMultiplier + correctBonus;
+    const finalHiteScore = HITE_BASE + totalPoints;
+
+    return {
+      completedDTE,
+      streakMultiplier,
+      correctBonus,
+      totalPoints,
+      finalHiteScore,
+    };
+  }, [allCorrect]);
+
   // Stats card (Active Streak)
   const daysMV = useMotionValue(0);
   const [daysVal, setDaysVal] = useState(0);
 
-  // HITE SCORE
-  const HITE_BASE = 915;
   const hiteMV = useMotionValue(0);
   const [hiteDeltaVal, setHiteDeltaVal] = useState(0);
 
@@ -168,10 +186,10 @@ function ScoreContent() {
   ]);
 
   const handleNext = () => {
-    const finalHiteScore = HITE_BASE + hiteDeltaVal;
+    // Use calculated target values 
     const params = new URLSearchParams({
-      hiteScore: finalHiteScore.toString(),
-      pointsEarned: totalVal.toString(),
+      hiteScore: targetValues.finalHiteScore.toString(),
+      pointsEarned: targetValues.totalPoints.toString(),
       wasCorrect: allCorrect.toString(),
     });
 
