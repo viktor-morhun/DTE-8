@@ -101,12 +101,12 @@ function RatingContent() {
           style={{ backgroundImage: `url('/quiz-bg.png')` }}
         />
 
-        <div className="relative z-10 h-dvh px-4 pt-[24px] pb-[3.125rem]">
-          <section className={twMerge("flex flex-col flex-1 relative")}>
+        <div className="relative z-10 min-h-dvh px-4 pt-[24px] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] flex flex-col">
+          <section className={twMerge("flex-1 flex flex-col")}>
             <BackButton onClick={handleBack} className="mt-1 mb-2" />
 
             {currentSlide === 1 && (
-              <div className="flex flex-col flex-1 relative">
+              <div className="flex-1 flex flex-col">
                 <div className="mx-auto mb-6">
                   <ChatIcon />
                 </div>
@@ -147,19 +147,11 @@ function RatingContent() {
                     ))}
                   </div>
                 </div>
-
-                <Button
-                  onClick={handleNext}
-                  className="fixed bottom-[58px] left-1/2 transform -translate-x-1/2 w-[calc(100vw-32px)] max-w-[calc(448px-32px)]"
-                  disabled={helpfulRating === 0 || engagingRating === 0}
-                >
-                  Next
-                </Button>
               </div>
             )}
 
             {currentSlide === 2 && (
-              <div className="flex flex-col flex-1 relative">
+              <div className="flex-1 flex flex-col">
                 {/* Question 3: What did you think of the length? */}
                 <div className="mb-10">
                   <h2 className="text-[16px] mt-4 text-[#FFFFFFCC] mb-3">
@@ -220,7 +212,7 @@ function RatingContent() {
                 </div>
 
                 {/* Question 6: Name */}
-                <div className="mb-15">
+                <div className="mb-6">
                   <h2 className="text-[14px] leading-[20px] text-[#FFFFFFCC] mb-1">
                     Please enter your name
                   </h2>
@@ -232,16 +224,20 @@ function RatingContent() {
                     className="w-full text-[16px] h-[48px] px-4 rounded-[4px] bg-[#FFFFFF0A] border border-[#FFFFFF4D] text-white placeholder-white/40 focus:outline-none focus:border-white/40"
                   />
                 </div>
-
-                <Button
-                  onClick={handleNext}
-                  className="fixed bottom-[58px] left-1/2 transform -translate-x-1/2 w-[calc(100vw-32px)] max-w-[calc(448px-32px)]"
-                >
-                  Next
-                </Button>
               </div>
             )}
           </section>
+
+          {/* Кнопка внизу */}
+          <div className="mt-auto pt-8">
+            <Button
+              onClick={handleNext}
+              className="h-15 w-full"
+              disabled={currentSlide === 1 && (helpfulRating === 0 || engagingRating === 0)}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -273,3 +269,4 @@ export default function RatingPage() {
     </Suspense>
   );
 }
+  
