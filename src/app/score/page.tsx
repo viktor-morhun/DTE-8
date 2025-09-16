@@ -186,7 +186,7 @@ function ScoreContent() {
   ]);
 
   const handleNext = () => {
-    // Use calculated target values 
+    // Use calculated target values
     const params = new URLSearchParams({
       hiteScore: targetValues.finalHiteScore.toString(),
       pointsEarned: targetValues.totalPoints.toString(),
@@ -204,8 +204,8 @@ function ScoreContent() {
           style={{ backgroundImage: `url('/quiz-bg.png')` }}
         />
 
-        <div className="relative z-10 h-dvh px-4 pt-[1rem] pb-[3.125rem]">
-          <section className={twMerge("flex flex-col flex-1 mt-10")}>
+        <div className="relative z-10 min-h-dvh px-4 pt-[1rem] pb-[calc(1rem+env(safe-area-inset-bottom,0px))] flex flex-col">
+          <section className={twMerge("flex-1 flex flex-col mt-10")}>
             {/* Верхний поздравительный блок */}
             <motion.div
               className="text-center mb-[3.75rem]"
@@ -484,22 +484,23 @@ function ScoreContent() {
                 </motion.div>
               </div>
             </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, ease: EASE, delay: 0.6 }}
-              className="mt-auto"
-            >
-              <Button
-                onClick={handleNext}
-                className="h-10 mt-[42px]"
-                variant="text"
-              >
-                Next
-              </Button>
-            </motion.div>
           </section>
+
+          {/* Кнопка внизу */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: EASE, delay: 0.6 }}
+            className="mt-auto pt-8"
+          >
+            <Button
+              onClick={handleNext}
+              className="h-10 w-full"
+              variant="text"
+            >
+              Next
+            </Button>
+          </motion.div>
         </div>
       </div>
     </div>
