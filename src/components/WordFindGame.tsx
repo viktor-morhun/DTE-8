@@ -29,6 +29,8 @@ export default function WordFindGame({
   const [currentRound, setCurrentRound] = useState(1);
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartCell, setDragStartCell] = useState<number | null>(null);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [incorrectCell, setIncorrectCell] = useState<number | null>(null);
 
   // Debug logging
   useEffect(() => {
@@ -205,6 +207,43 @@ export default function WordFindGame({
     }
   }, [timeLeft, gameStatus, isActive, lives, onComplete]);
 
+  // Check if current selection is valid (matches target word sequence)
+  const isValidSelection = (newSelectedCells: number[]) => {
+    const selectedWord = newSelectedCells.map((i) => gridData[i]).join("");
+    return targetWord.startsWith(selectedWord);
+  };
+
+  // Handle invalid selection (wrong letter)
+  const handleInvalidSelection = (invalidCellIndex: number) => {
+    // Block further selections and show incorrect cell
+    setIsBlocked(true);
+    setIncorrectCell(invalidCellIndex);
+
+    // Add incorrect letter to display
+    const newSelected = [...selectedCells, invalidCellIndex];
+    setSelectedCells(newSelected);
+    setFoundWord(newSelected.map((i) => gridData[i]).join(""));
+
+    setLives((prev) => prev - 1);
+    setTimeLeft(30); // Reset timer
+
+    // Unblock and clear incorrect feedback after 1 second
+    setTimeout(() => {
+      setIsBlocked(false);
+      setIncorrectCell(null);
+      setSelectedCells([]);
+      setFoundWord("");
+    }, 1000);
+
+    // Game over only when no lives left
+    if (lives <= 1) {
+      setGameStatus("lost");
+      setTimeout(() => {
+        onComplete();
+      }, 2000);
+    }
+  };
+
   // Check for game completion
   useEffect(() => {
     if (
@@ -234,7 +273,7 @@ export default function WordFindGame({
 
   // Handle drag start
   const handleMouseDown = (e: React.MouseEvent, cellIndex: number) => {
-    if (gameStatus !== "playing") return;
+    if (gameStatus !== "playing" || isBlocked) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -245,22 +284,40 @@ export default function WordFindGame({
     // Add to existing selection instead of replacing
     if (!selectedCells.includes(cellIndex)) {
       const newSelected = [...selectedCells, cellIndex];
-      setSelectedCells(newSelected);
-      setFoundWord(newSelected.map((i) => gridData[i]).join(""));
+
+      // Check if selection is valid
+      if (isValidSelection(newSelected)) {
+        setSelectedCells(newSelected);
+        setFoundWord(newSelected.map((i) => gridData[i]).join(""));
+      } else {
+        // Invalid selection - restart round
+        handleInvalidSelection(cellIndex);
+        setIsDragging(false);
+        setDragStartCell(null);
+      }
     }
   };
 
   // Handle drag over
   const handleMouseEnter = (e: React.MouseEvent, cellIndex: number) => {
-    if (!isDragging || gameStatus !== "playing") return;
+    if (!isDragging || gameStatus !== "playing" || isBlocked) return;
 
     e.preventDefault();
     e.stopPropagation();
 
     if (!selectedCells.includes(cellIndex)) {
       const newSelected = [...selectedCells, cellIndex];
-      setSelectedCells(newSelected);
-      setFoundWord(newSelected.map((i) => gridData[i]).join(""));
+
+      // Check if selection is valid
+      if (isValidSelection(newSelected)) {
+        setSelectedCells(newSelected);
+        setFoundWord(newSelected.map((i) => gridData[i]).join(""));
+      } else {
+        // Invalid selection - restart round
+        handleInvalidSelection(cellIndex);
+        setIsDragging(false);
+        setDragStartCell(null);
+      }
     }
   };
 
@@ -280,7 +337,7 @@ export default function WordFindGame({
     e.preventDefault();
     e.stopPropagation();
 
-    if (gameStatus !== "playing") return;
+    if (gameStatus !== "playing" || isBlocked) return;
 
     setIsDragging(true);
     setDragStartCell(cellIndex);
@@ -294,13 +351,22 @@ export default function WordFindGame({
     } else {
       // Select cell
       const newSelected = [...selectedCells, cellIndex];
-      setSelectedCells(newSelected);
-      setFoundWord(newSelected.map((i) => gridData[i]).join(""));
+
+      // Check if selection is valid
+      if (isValidSelection(newSelected)) {
+        setSelectedCells(newSelected);
+        setFoundWord(newSelected.map((i) => gridData[i]).join(""));
+      } else {
+        // Invalid selection - restart round
+        handleInvalidSelection(cellIndex);
+        setIsDragging(false);
+        setDragStartCell(null);
+      }
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging || gameStatus !== "playing") return;
+    if (!isDragging || gameStatus !== "playing" || isBlocked) return;
 
     e.preventDefault();
     e.stopPropagation();
@@ -311,8 +377,17 @@ export default function WordFindGame({
       const cellIndex = parseInt(element.getAttribute("data-cell-index")!);
       if (!selectedCells.includes(cellIndex)) {
         const newSelected = [...selectedCells, cellIndex];
-        setSelectedCells(newSelected);
-        setFoundWord(newSelected.map((i) => gridData[i]).join(""));
+
+        // Check if selection is valid
+        if (isValidSelection(newSelected)) {
+          setSelectedCells(newSelected);
+          setFoundWord(newSelected.map((i) => gridData[i]).join(""));
+        } else {
+          // Invalid selection - restart round
+          handleInvalidSelection(cellIndex);
+          setIsDragging(false);
+          setDragStartCell(null);
+        }
       }
     }
   };
@@ -330,8 +405,8 @@ export default function WordFindGame({
   // Handle cell selection
   const handleCellClick = (cellIndex: number) => {
     console.log("Cell clicked:", cellIndex, "Game status:", gameStatus);
-    if (gameStatus !== "playing" || isDragging) {
-      console.log("Game not playing or dragging, click ignored");
+    if (gameStatus !== "playing" || isDragging || isBlocked) {
+      console.log("Game not playing, dragging, or blocked - click ignored");
       return;
     }
 
@@ -343,49 +418,16 @@ export default function WordFindGame({
     } else {
       // Select cell
       const newSelected = [...selectedCells, cellIndex];
-      setSelectedCells(newSelected);
-      setFoundWord(newSelected.map((i) => gridData[i]).join(""));
-    }
-  };
 
-  // Handle check word
-  const handleCheckWord = () => {
-    if (foundWord === targetWord && gameStatus === "playing") {
-      if (currentRound < 3) {
-        // Show success briefly before moving to next round
-        setTimeout(() => {
-          setCurrentRound(currentRound + 1);
-          setSelectedCells([]);
-          setFoundWord("");
-          setTimeLeft(30); // Reset timer for new round
-        }, 1000); // 1 second delay
+      // Check if selection is valid
+      if (isValidSelection(newSelected)) {
+        setSelectedCells(newSelected);
+        setFoundWord(newSelected.map((i) => gridData[i]).join(""));
       } else {
-        // Final round completed, game won
-        setGameStatus("won");
-        setTimeout(() => {
-          onComplete();
-        }, 1500); // Slightly longer delay for final victory
-      }
-    } else if (foundWord.length > 0) {
-      // Wrong word
-      setLives(lives - 1);
-      setSelectedCells([]);
-      setFoundWord("");
-
-      // Game over only when no lives left
-      if (lives <= 1) {
-        setGameStatus("lost");
-        setTimeout(() => {
-          onComplete();
-        }, 2000);
+        // Invalid selection - restart round
+        handleInvalidSelection(cellIndex);
       }
     }
-  };
-
-  // Handle clear selection
-  const handleClearSelection = () => {
-    setSelectedCells([]);
-    setFoundWord("");
   };
 
   // Handle next level
@@ -405,6 +447,8 @@ export default function WordFindGame({
     setLives(4);
     setGameStatus("playing");
     setCurrentRound(1);
+    setIsBlocked(false);
+    setIncorrectCell(null);
   };
 
   // Handle finish game
@@ -453,22 +497,32 @@ export default function WordFindGame({
       {/* Round and Target Word Display */}
       <div className="text-center">
         <div className="flex justify-center gap-2">
-          {Array.from({ length: targetWord.length }, (_, i) => (
-            <div
-              key={i}
-              className={`border-2  bg-[#FFFFFF0A] rounded-[4px] flex items-center justify-center text-white font-medium ${
-                foundWord[i] === targetWord[i]
-                  ? "border-[#B2FF8B]"
-                  : "border-[#FFFFFF4D]"
-              }  ${
-                targetWord.length >= 8
-                  ? "w-8 h-8 text-[30px]"
-                  : "w-12 h-12 text-[48px]"
-              }`}
-            >
-              {foundWord[i] || ""}
-            </div>
-          ))}
+          {Array.from({ length: targetWord.length }, (_, i) => {
+            const isCorrectMatch = foundWord[i] === targetWord[i];
+            const isIncorrectLetter =
+              incorrectCell !== null &&
+              foundWord[i] &&
+              !isCorrectMatch;
+
+            return (
+              <div
+                key={i}
+                className={`border-2 bg-[#FFFFFF0A] rounded-[4px] flex items-center justify-center font-medium ${
+                  isIncorrectLetter
+                    ? "border-[#F97066] text-[#F97066]"
+                    : isCorrectMatch
+                    ? "border-[#B2FF8B] text-white"
+                    : "border-[#FFFFFF4D] text-white"
+                } ${
+                  targetWord.length >= 8
+                    ? "w-8 h-8 text-[30px]"
+                    : "w-12 h-12 text-[48px]"
+                }`}
+              >
+                {foundWord[i] || ""}
+              </div>
+            );
+          })}
         </div>
         <p className="text-white text-[14px] leading-[20px] mt-2.5">
           Target Word: {targetWord}
@@ -478,7 +532,9 @@ export default function WordFindGame({
       {/* Game Grid */}
       <div className="flex-1 flex flex-col items-center mt-10">
         <div
-          className={`grid rounded-2xl mb-4`}
+          className={`grid rounded-2xl mb-4 ${
+            isBlocked ? "pointer-events-none opacity-75" : ""
+          }`}
           style={{
             gridTemplateColumns: `repeat(${gridSize}, minmax(0, 1fr))`,
             width:
@@ -495,6 +551,7 @@ export default function WordFindGame({
         >
           {gridData.map((letter, index) => {
             const isSelected = selectedCells.includes(index);
+            const isIncorrect = incorrectCell === index;
             const isCorrectLetter = targetWord.includes(letter);
             const row = Math.floor(index / gridSize);
             const col = index % gridSize;
@@ -512,31 +569,34 @@ export default function WordFindGame({
             let borderRadius: Record<string, string> = {};
 
             if (isSelected) {
+              const borderColor = isIncorrect ? "#FF4444" : "#B2FF8B";
+
               borderStyles = {
                 borderTopWidth: topSelected ? "0px" : "1px",
                 borderBottomWidth: bottomSelected ? "0px" : "1px",
                 borderLeftWidth: leftSelected ? "0px" : "1px",
                 borderRightWidth: rightSelected ? "0px" : "1px",
-                borderTopColor: "#B2FF8B",
-                borderBottomColor: "#B2FF8B",
-                borderLeftColor: "#B2FF8B",
-                borderRightColor: "#B2FF8B",
+                borderTopColor: borderColor,
+                borderBottomColor: borderColor,
+                borderLeftColor: borderColor,
+                borderRightColor: borderColor,
               };
 
               // Add shadow only on external edges
               const shadows = [];
+              const shadowColor = isIncorrect ? "#FF4444" : "#B2FF8B";
 
               if (!topSelected) {
-                shadows.push("0 -2px 2px -1px #B2FF8B");
+                shadows.push(`0 -2px 2px -1px ${shadowColor}`);
               }
               if (!bottomSelected) {
-                shadows.push("0 2px 2px -1px #B2FF8B");
+                shadows.push(`0 2px 2px -1px ${shadowColor}`);
               }
               if (!leftSelected) {
-                shadows.push("-2px 0 2px -1px #B2FF8B");
+                shadows.push(`-2px 0 2px -1px ${shadowColor}`);
               }
               if (!rightSelected) {
-                shadows.push("2px 0 2px -1px #B2FF8B");
+                shadows.push(`2px 0 2px -1px ${shadowColor}`);
               }
 
               if (shadows.length > 0) {
@@ -589,21 +649,24 @@ export default function WordFindGame({
                 onTouchStart={(e) => handleTouchStart(e, index)}
                 onTouchMove={handleTouchMove}
                 onTouchEnd={handleTouchEnd}
-                disabled={gameStatus !== "playing"}
+                disabled={gameStatus !== "playing" || isBlocked}
                 className={`
                   aspect-square flex items-center justify-center font-medium
                   transition-all duration-200 border select-none
                   ${
                     isSelected
-                      ? `bg-[#000000DB] border-[#B2FF8B] ${
-                          isCorrectLetter
-                            ? "text-[#B2FF8B]"
-                            : "text-[#FFFFFF80]"
-                        } shadow-lg`
+                      ? isIncorrect
+                        ? "bg-[#000000DB] border-[#F97066] text-[#F97066] shadow-lg"
+                        : `bg-[#000000DB] border-[#B2FF8B] ${
+                            isCorrectLetter
+                              ? "text-[#B2FF8B]"
+                              : "text-[#FFFFFF80]"
+                          } shadow-lg`
                       : foundWord.length === 0
                       ? "bg-[#0A0B1299] border-[#FFFFFF1A] text-white"
                       : "bg-[#0A0B1299] border-[#FFFFFF1A] text-[#FFFFFF80]"
                   }
+                  ${isBlocked ? "cursor-not-allowed" : ""}
                 `}
                 style={{
                   touchAction: "none",

@@ -21,15 +21,35 @@ export async function POST(request: NextRequest) {
 
     console.log('Validation passed');
 
-    // Prepare rating data
+    // Calculate overall rating as average of helpful and engaging
+    const overallRating = Math.round((data.helpfulRating + data.engagingRating) / 2);
+
+    // Map length feedback to expected format
+    const lengthChoice = data.lengthFeedback === "Too Long" ? "long" : 
+                        data.lengthFeedback === "Just Right" ? "right" : 
+                        data.lengthFeedback === "Too Short" ? "short" : "";
+
+    // Get user agent from headers
+    const userAgent = request.headers.get('user-agent') || '';
+
+    // Prepare meta JSON
+    const metaJson = JSON.stringify({
+      page: "feedback/form",
+      appVersion: "demo"
+    });
+
+    // Prepare rating data in new format
     const ratingData = {
-      timestamp: new Date().toISOString(),
-      helpfulRating: data.helpfulRating,
-      engagingRating: data.engagingRating,
-      lengthFeedback: data.lengthFeedback || '',
-      daysPerWeek: data.daysPerWeek !== null ? data.daysPerWeek : '',
-      additionalFeedback: data.additionalFeedback || '',
-      userName: data.userName || ''
+      ts_iso: new Date().toISOString(),
+      name: data.userName || '',
+      overall_rating: overallRating,
+      helpful_rating: data.helpfulRating,
+      engaging_rating: data.engagingRating,
+      length_choice: lengthChoice,
+      days_per_week: data.daysPerWeek !== null ? data.daysPerWeek : '',
+      notes: data.additionalFeedback || '',
+      meta_json: metaJson,
+      user_agent: userAgent
     };
 
     console.log('Rating data prepared:', ratingData);
@@ -71,38 +91,44 @@ export async function POST(request: NextRequest) {
       console.log('Document loaded:', doc.title);
 
       // Get or create the ratings sheet
-      let sheet = doc.sheetsByTitle['DTE-8'];
+      let sheet = doc.sheetsByTitle['DTE8'];
       
       if (!sheet) {
-        console.log('Creating new DTE-8 sheet...');
+        console.log('Creating new DTE8 sheet...');
         sheet = await doc.addSheet({
-          title: 'DTE-8',
+          title: 'DTE8',
           headerValues: [
-            'Timestamp',
-            'Helpful Rating',
-            'Engaging Rating', 
-            'Length Feedback',
-            'Days Per Week',
-            'Additional Feedback',
-            'User Name'
+            'ts_iso',
+            'name',
+            'overall_rating',
+            'helpful_rating',
+            'engaging_rating',
+            'length_choice',
+            'days_per_week',
+            'notes',
+            'meta_json',
+            'user_agent'
           ]
         });
         console.log('New sheet created');
       } else {
-        console.log('Using existing DTE-8 sheet');
+        console.log('Using existing DTE8 sheet');
         // Load headers to ensure they exist
         await sheet.loadHeaderRow();
       }
 
       // Prepare row data for Google Sheets
       const rowData = {
-        'Timestamp': ratingData.timestamp,
-        'Helpful Rating': ratingData.helpfulRating.toString(),
-        'Engaging Rating': ratingData.engagingRating.toString(),
-        'Length Feedback': ratingData.lengthFeedback,
-        'Days Per Week': ratingData.daysPerWeek.toString(),
-        'Additional Feedback': ratingData.additionalFeedback,
-        'User Name': ratingData.userName
+        'ts_iso': ratingData.ts_iso,
+        'name': ratingData.name,
+        'overall_rating': ratingData.overall_rating.toString(),
+        'helpful_rating': ratingData.helpful_rating.toString(),
+        'engaging_rating': ratingData.engaging_rating.toString(),
+        'length_choice': ratingData.length_choice,
+        'days_per_week': ratingData.days_per_week.toString(),
+        'notes': ratingData.notes,
+        'meta_json': ratingData.meta_json,
+        'user_agent': ratingData.user_agent
       };
 
       console.log('Adding row to sheet...');
